@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+  <head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Training Certificate Upload</title>
+    <base target="_top">
+    <style>
+    body,input {
+font: 14pt Helvetica, Arial, sans-serif;
+line-height: 1.3;
+color: #000;
+}
+
+button {
+  background-color: #4287f5;
+  border: none;
+  color: white;
+  padding: 8px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  margin: 4px 2px;
+  border-radius: 8px;
+font: 14pt Helvetica, Arial, sans-serif;
+line-height: 1.3;
+}
+.inputfile {
+	width: 0.1px;
+	height: 0.1px;
+	opacity: 0;
+	overflow: hidden;
+	position: absolute;
+	z-index: -1;
+}
+.inputfile + label {
+font: 14pt Helvetica, Arial, sans-serif;
+line-height: 1.3;
+  background-color: #4287f5;
+   cursor:hand;
+    color: white;
+    display: inline-block;
+  margin: 4px 2px;
+  padding: 8px;
+  border-radius: 8px;
+}
+
+.inputfile:focus + label,
+.inputfile + label:hover {
+    background-color: red;
+}
+
+</style>
+  </head>
+  <body>
+  <form onSubmit="submitForm(); return false">
+<p>Region 13 volunteers, please use this to send your certificate. More info at <a href="https://ayso13.org/training">https://ayso13.org/training</a>. 
+Questions? Ask <a href=mailto:registrar@ayso13.org>registrar@ayso13.org</a>.
+<br>
+<!-- Text input fields -->
+<table><tr><td>Name<td> <input id="name" type="text" placeholder="Your Name">
+<tr><td>Email<td> <input id="email" type="email" placeholder="Your Email">
+<tr><td colspan=2>
+<input name="training" type="radio" value=SCA alt="Sudden Cardiac Arrest" id=training0><label for="training0"> Sudden Cardiac Arrest</label><br>
+<input name="training" type="radio" value=Concussion alt="Sudden Cardiac Arrest" id=training1><label for="training1"> Concussion Awareness</label><br>
+<input name="training" type="radio" value="Safe Haven" alt="Safe Haven" id=training2><label for="training2"> Safe Haven</label>
+<tr><td colspan=2>
+<!-- File upload button -->
+<tr><td colspan=2>
+<input class="inputfile" id="inputfile" type="file" accept="application/pdf,image/*"><label for="inputfile">Choose a file</label>
+<!-- Form submit button -->
+<tr><td colspan=2>
+<span id=progress></span> <button type=submit onClick="submitForm">Send</button>
+</table>
+</form>
+
+<script>
+  var aysoid = <?= aysoid ?>;
+  var name = <?= name ?>;
+  var email = <?= email ?>;
+  var training = <?= training ?>;
+ 
+  var file;
+  var radios = ['training0','training1','training2'];
+  
+  var reader = new FileReader();
+  
+  // Initialize the fields if any were provided through the query, i.e. http://script.google.com/thisscript?aysoid=123&name=Foo&email=Bar&training=Concussion
+  if (name) document.getElementById('name').value = name;
+  if (email) document.getElementById('email').value = email;
+  for (var i=0;i<radios.length;i++) {var n = document.getElementById(radios[i]); if (n.value === training) n.checked=true;}
+  
+  // Upload the file to Google Drive
+  reader.onloadend = function(e) 
+  {
+  showMessage("Checking ...");
+  var training='';
+  for (var i=0;i<radios.length;i++){var n = document.getElementById(radios[i]); if (n.checked) training = n.value;}
+  var name = document.getElementById('name').value;
+  var email = document.getElementById('email').value;
+  if (name.length < 2) {showMessage('Name required'); return false;}
+  if (email.length < 2) {showMessage('Email address required'); return false;}
+  if (training.length < 2) {showMessage('Please indicate what certificate you are sending'); return false;}
+  
+  showMessage("Sending ...");
+    google.script.run
+      .withSuccessHandler(showMessage)
+      .submitFormWithFile(e.target.result, aysoid, name, email, training);
+  };
+
+  // Read the file on form submit
+  function submitForm() {
+    file = document.getElementById('inputfile').files[0];
+    if (!file) {showMessage('Please attach a file'); return}
+    showMessage("Reading file ...");
+    reader.readAsDataURL(file);
+  }
+
+  function showMessage(e) {
+    document.getElementById('progress').innerHTML=e;
+  }
+
+</script>
+  </body>
+</html>
+
+
